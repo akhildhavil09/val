@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Cormorant+Garamond:wght@300;400;600&display=swap" rel="stylesheet">
+
+<style>
+:root {
+    --cozy-red: #d94f70;
+    --soft-pink: #ffd6e0;
+    --night-blue: #361b34;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Cormorant Garamond', serif;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+}
+
+/* Background */
+.bg {
+    position: fixed;
+    inset: 0;
+    background: url("chicago-riverwalk.png") center / cover no-repeat;
+    z-index: 0;
+}
+
+.bg::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+        rgba(26,35,50,0.85),
+        rgba(26,35,50,0.75),
+        rgba(26,35,50,0.85)
+    );
+}
+
+/* Card */
+.container {
+    position: relative;
+    z-index: 10;
+    background: rgba(248, 246, 247, 0.95);
+    backdrop-filter: blur(20px);
+    padding: 80px 100px;
+    border-radius: 45px;
+    text-align: center;
+    box-shadow: 0 40px 100px rgba(232, 2, 151, 0.6);
+    max-width: 90%;
+}
+
+h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: 4em;
+    color: var(--cozy-red);
+    margin-bottom: 20px;
+}
+
+.subtitle {
+    font-size: 1.5em;
+    font-style: italic;
+    color: var(--night-blue);
+    opacity: 0.85;
+    margin-bottom: 35px;
+}
+
+.icon-row {
+    display: flex;
+    justify-content: center;
+    gap: 30px;
+    font-size: 1.4em;
+    font-style: italic;
+    color: var(--night-blue);
+    margin-bottom: 45px;
+}
+
+/* Buttons */
+.buttons {
+    display: flex;
+    gap: 35px;
+    justify-content: center;
+    align-items: center;
+    min-height: 120px;
+}
+
+button {
+    padding: 22px 65px;
+    font-size: 1.6em;
+    font-family: 'Playfair Display', serif;
+    font-weight: 700;
+    border-radius: 60px;
+    border: none;
+    cursor: pointer;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+#yesBtn {
+    background: linear-gradient(135deg, var(--cozy-red), var(--cozy-red));
+    color: white;
+    box-shadow: 0 12px 30px rgba(140, 6, 64, 0.5);
+}
+
+#yesBtn:hover {
+    transform: scale(1.08);
+}
+
+#noBtn {
+    background: linear-gradient(135deg, #95a5a6, #7f8c8d);
+    color: white;
+    position: fixed;
+}
+
+/* Message */
+.message {
+    margin-top: 35px;
+    font-size: 1.4em;
+    color: var(--cozy-red);
+    font-style: italic;
+    min-height: 40px;
+}
+
+/* Celebration */
+.celebration {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    background: linear-gradient(
+        rgba(148, 55, 78, 0.97),
+        rgba(217,79,112,0.97)
+    );
+    backdrop-filter: blur(15px);
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    text-align: center;
+}
+
+.celebration.active {
+    display: flex;
+}
+
+.celebration h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 5em;
+    color: white;
+    margin-bottom: 25px;
+}
+
+.celebration p {
+    font-size: 2em;
+    color: white;
+    font-style: italic;
+    max-width: 80%;
+}
+
+/* Fireworks canvas */
+#fireworks {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 2000;
+}
+
+/* Mobile */
+@media (max-width: 768px) {
+    .container {
+        padding: 60px 40px;
+    }
+    h1 { font-size: 2.5em; }
+    .subtitle { font-size: 1.2em; }
+    button { font-size: 1.3em; padding: 18px 45px; }
+}
+</style>
+</head>
+
+<body>
+
+<div class="bg"></div>
+
+<div class="container">
+    <h1>Miss Pooja Raju! Will You Be My Valentine?</h1>
+    <p class="subtitle">Yes! We are there</p>
+
+    <div class="buttons">
+        <button id="yesBtn">Yes</button>
+        <button id="noBtn">No</button>
+    </div>
+
+    <div class="message" id="message"></div>
+</div>
+
+<div class="celebration" id="celebration">
+    <h2>It’s a Date baby</h2>
+    <p> Looks like I got lucky!</p>
+</div>
+
+<canvas id="fireworks"></canvas>
+
+<script>
+/* NO button banter */
+const noBtn = document.getElementById("noBtn");
+const yesBtn = document.getElementById("yesBtn");
+const message = document.getElementById("message");
+const celebration = document.getElementById("celebration");
+
+const messages = [
+    "Nice try 😏",
+    "Almost 😜",
+    "Too slow pooja 🐢",
+    "You wish 😌",
+    "Are we not there yet? 😭",
+    "This is getting funny 😂",
+    "Just click YES 💖",
+    "Okay, I’m tired… press YES 😆"
+];
+
+let msgIndex = 0;
+let canMove = true;
+
+function moveNoButton() {
+    if (!canMove) return;
+    canMove = false;
+
+    message.textContent = messages[msgIndex];
+    msgIndex = (msgIndex + 1) % messages.length;
+
+    const padding = 20;
+    const rect = noBtn.getBoundingClientRect();
+
+    const maxX = window.innerWidth - rect.width - padding;
+    const maxY = window.innerHeight - rect.height - padding;
+
+    const x = Math.random() * maxX;
+    const y = Math.random() * maxY;
+
+    noBtn.style.left = x + "px";
+    noBtn.style.top = y + "px";
+
+    setTimeout(() => canMove = true, 150);
+}
+
+noBtn.addEventListener("mouseenter", moveNoButton);
+noBtn.addEventListener("touchstart", e => {
+    e.preventDefault();
+    moveNoButton();
+});
+noBtn.addEventListener("click", e => {
+    e.preventDefault();
+    moveNoButton();
+});
+
+/* Fireworks */
+const canvas = document.getElementById("fireworks");
+const ctx = canvas.getContext("2d");
+
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
+
+window.addEventListener("resize", () => {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+});
+
+class Firework {
+    constructor(x, y) {
+        this.particles = [];
+        const colors = ["#ffd6e0", "#ffffff", "#f4c2c2"];
+        const color = colors[Math.floor(Math.random() * colors.length)];
+
+        for (let i = 0; i < 60; i++) {
+            const angle = Math.random() * Math.PI * 2;
+            const speed = Math.random() * 5 + 2;
+            this.particles.push({
+                x, y,
+                vx: Math.cos(angle) * speed,
+                vy: Math.sin(angle) * speed,
+                alpha: 1,
+                color
+            });
+        }
+    }
+
+    update() {
+        this.particles.forEach(p => {
+            p.x += p.vx;
+            p.y += p.vy;
+            p.vy += 0.05;
+            p.alpha -= 0.015;
+        });
+        this.particles = this.particles.filter(p => p.alpha > 0);
+    }
+
+    draw() {
+        this.particles.forEach(p => {
+            ctx.globalAlpha = p.alpha;
+            ctx.fillStyle = p.color;
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, 2, 0, Math.PI * 2);
+            ctx.fill();
+        });
+        ctx.globalAlpha = 1;
+    }
+}
+
+let fireworks = [];
+
+function launchFireworks() {
+    const interval = setInterval(() => {
+        fireworks.push(
+            new Firework(
+                Math.random() * canvas.width,
+                Math.random() * canvas.height * 0.4
+            )
+        );
+    }, 400);
+
+    setTimeout(() => clearInterval(interval), 4000);
+}
+
+function animate() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    fireworks.forEach(f => {
+        f.update();
+        f.draw();
+    });
+    fireworks = fireworks.filter(f => f.particles.length);
+    requestAnimationFrame(animate);
+}
+
+animate();
+
+/* YES click */
+yesBtn.addEventListener("click", () => {
+    celebration.classList.add("active");
+    launchFireworks();
+});
+</script>
+
+</body>
+</html>
